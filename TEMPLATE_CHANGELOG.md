@@ -4,6 +4,13 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ## [Unreleased]
 
-- Added a starter Dockerfile, image tests and CI to lint, test and build the image, and a release workflow that publishes it to GitHub Container Registry and Docker Hub when enabled.
-- Added a Sweepito configuration that cleans Docker build caches and Python test caches.
-- The Init workflow now asks for the image name (and optionally a Docker Hub namespace) and whether to keep pytest and mypy, then sets up the repository to match.
+## [0.1.0] - 2026-11-25
+
+### Added
+
+- A starter Dockerfile for a small, non-root image, with a placeholder application.
+- CI that lints the Dockerfile, runs unit and integration tests with strict type checking, and builds the image.
+- A release workflow that publishes the image to GitHub Container Registry and Docker Hub when you enable them.
+- An Init workflow that asks for the image name, an optional Docker Hub namespace and whether to keep pytest and mypy, then sets up the repository to match.
+- A Sweepito configuration that cleans Docker build caches and Python test caches.
+- Docker-specific documentation, issue and pull request templates, and ignore rules.

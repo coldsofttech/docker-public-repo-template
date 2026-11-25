@@ -28,7 +28,7 @@ A ready-to-use starting point for public GitHub repositories that ship a Docker 
 
 ## Building the image
 
-```
+```bash
 docker build -t my-image .
 docker run --rm my-image
 ```

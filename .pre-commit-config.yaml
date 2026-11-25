@@ -16,7 +16,7 @@ repos:
     hooks:
       - id: gitleaks
   - repo: https://github.com/coldsofttech/Sweepito
-    rev: v0.1.0
+    rev: v0.2.0
     hooks:
       - id: sweepito-scan
       - id: sweepito-clean

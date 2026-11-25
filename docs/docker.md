@@ -25,7 +25,7 @@ Both can be enabled together; one build is pushed to each.
 
 ## Build and test locally
 
-```
+```bash
 docker build -t my-image .
 pip install mypy pytest && mypy && pytest
 pytest -m integration

@@ -79,7 +79,14 @@ jobs:
             exit 0
           fi
           git commit -m "chore: initialize repository from template"
-          git push origin chore/init-template
+          if ! git push origin chore/init-template 2> push.log; then
+            cat push.log
+            if grep -q "without \`workflows\` permission" push.log; then
+              echo "::warning title=Init could not push::GitHub does not let the workflow token change files in .github/workflows, so no pull request was opened. Run scripts/init_template.py locally with IMAGE_NAME, REPO and the WITH_* variables set, then commit the result yourself."
+              exit 0
+            fi
+            exit 1
+          fi
           gh pr create --base "$BASE" --head chore/init-template \
             --title "chore: initialize repository from template" \
             --body "Replaces the template owner and repository name, and applies the image name and the pytest/mypy choices. Review, merge, then delete \`.github/workflows/init.yml\`."

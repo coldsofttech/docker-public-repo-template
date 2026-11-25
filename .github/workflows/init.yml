@@ -2,7 +2,7 @@ name: Init
 
 # Run once from the Actions tab in a repository created from the template.
 # Replaces the template's owner and repository name, applies the chosen image name and the
-# pytest/mypy choices, then opens a pull request.
+# pytest/mypy/Trivy choices, then opens a pull request.
 on:
   workflow_dispatch:
     inputs:
@@ -20,6 +20,10 @@ on:
         default: true
       with_mypy:
         description: Keep strict mypy type checking
+        type: boolean
+        default: true
+      with_trivy:
+        description: Keep Trivy security scanning of the Dockerfile and image
         type: boolean
         default: true
 
@@ -58,6 +62,7 @@ jobs:
           DOCKERHUB_NAMESPACE: ${{ inputs.dockerhub_namespace }}
           WITH_PYTEST: ${{ inputs.with_pytest }}
           WITH_MYPY: ${{ inputs.with_mypy }}
+          WITH_TRIVY: ${{ inputs.with_trivy }}
         run: python3 scripts/init_template.py
 
       - name: Open pull request

@@ -14,6 +14,8 @@ Technical notes for the image defined in the `Dockerfile`.
 
 `.github/workflows/ci.yml` runs on every pull request and push to `main`. It runs pre-commit, lints the Dockerfile with hadolint, runs the unit tests (`tests`) and the integration tests (`int-tests`), and builds the image without pushing.
 
+`.github/workflows/security.yml` scans the Dockerfile with Trivy on every pull request and push to `main`, and scans the built image weekly and on manual runs. Findings appear in the repository's Security tab and the jobs are not required status checks. Init removes the workflow if you turn Trivy off.
+
 `.github/workflows/release.yml` runs when a GitHub release is published, with one job per registry (`publish-ghcr`, `publish-dockerhub`). A job runs only when its repository variable is set (Settings > Secrets and variables > Actions > Variables); with none set, nothing is published. Images are tagged with the release version, for example `1.2.3` and `1.2`.
 
 | Registry | Enable with | Image |

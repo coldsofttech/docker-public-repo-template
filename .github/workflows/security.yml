@@ -1,0 +1,86 @@
+name: Security
+
+# The Dockerfile is scanned by Trivy on every run. The built image is scanned for vulnerable OS and
+# Python packages on the weekly and manual runs only, because it needs a full build and a newly
+# published vulnerability should not fail an unrelated pull request. Findings go to the Security
+# tab as SARIF. These jobs report only; they are not required status checks.
+on:
+  pull_request:
+  push:
+    branches: [main]
+  schedule:
+    - cron: "0 6 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: security-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  trivy-config:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      security-events: write
+      actions: read
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v7
+      - name: Scan the Dockerfile
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          scan-type: config
+          scan-ref: .
+          # Trivy reads Dockerfile.dockerignore as a Dockerfile and fails on it
+          skip-files: Dockerfile.dockerignore
+          severity: HIGH,CRITICAL
+          limit-severities-for-sarif: true # the SARIF report otherwise lists, and fails on, every severity
+          format: sarif
+          output: trivy-config.sarif
+          exit-code: "1"
+      - name: Upload results
+        if: always() && hashFiles('trivy-config.sarif') != '' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
+        uses: github/codeql-action/upload-sarif@v4
+        with:
+          sarif_file: trivy-config.sarif
+          category: trivy-docker-config
+
+  trivy-image:
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      security-events: write
+      actions: read
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v7
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+      - name: Build the image
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          load: true
+          tags: scan-image:scan
+      - name: Scan the image
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          image-ref: scan-image:scan
+          severity: HIGH,CRITICAL
+          limit-severities-for-sarif: true # the SARIF report otherwise lists, and fails on, every severity
+          ignore-unfixed: true
+          format: sarif
+          output: trivy-image.sarif
+          exit-code: "1"
+      - name: Upload results
+        if: always() && hashFiles('trivy-image.sarif') != ''
+        uses: github/codeql-action/upload-sarif@v4
+        with:
+          sarif_file: trivy-image.sarif
+          category: trivy-docker-image

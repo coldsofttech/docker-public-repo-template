@@ -4,6 +4,10 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ## [Unreleased]
 
+### Added
+
+- Trivy security scanning of the Dockerfile and, weekly, the built image, which the Init workflow can turn off.
+
 ## [0.1.0] - 2026-11-25
 
 ### Added

@@ -38,7 +38,7 @@ Repository admins can bypass the ruleset through a pull request. This lets a sol
 ## Manual steps
 
 - Tick **Template repository** on this repo (Settings > General).
-- Run the **Init** workflow (Actions tab). It asks for the Docker image name, an optional Docker Hub namespace and whether to keep pytest and mypy, and replaces the template owner and repository name. Merge its pull request, then delete `.github/workflows/init.yml`. It requires "Allow GitHub Actions to create and approve pull requests", which the settings script turns on. If the owner is an organization, change `.github/CODEOWNERS` to a team.
+- Run the **Init** workflow (Actions tab). It asks for the Docker image name, an optional Docker Hub namespace and whether to keep pytest, mypy and Trivy, and replaces the template owner and repository name. Merge its pull request, then delete `.github/workflows/init.yml`. It requires "Allow GitHub Actions to create and approve pull requests", which the settings script turns on. If the owner is an organization, change `.github/CODEOWNERS` to a team.
 - To publish images, set the repository variables and secret described in [packaging](packaging.md#enabling-registries). Nothing is published until you do.
 - Fill in the contact method in `CODE_OF_CONDUCT.md`.
 - Run `pre-commit install --hook-type pre-commit --hook-type post-commit` locally (the post-commit type is needed for Sweepito cleanup).

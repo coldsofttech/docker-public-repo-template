@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """Tailor a repository created from the template. Run by the Init workflow.
 
-Reads IMAGE_NAME, REPO and WITH_PYTEST / WITH_MYPY ("true" or "false") from the environment, and
+Reads IMAGE_NAME, REPO and WITH_PYTEST / WITH_MYPY / WITH_TRIVY ("true" or "false") from the
+environment, and
 optionally DOCKERHUB_NAMESPACE. Removes TEMPLATE_CHANGELOG.md and this script when done.
 """
 import os
@@ -36,6 +37,7 @@ def main():
     repo = os.environ["REPO"]
     pytest = os.environ.get("WITH_PYTEST") == "true"
     mypy = os.environ.get("WITH_MYPY") == "true"
+    trivy = os.environ.get("WITH_TRIVY") == "true"
 
     if not re.fullmatch(r"[a-z0-9][a-z0-9._-]*", image):
         sys.exit(f"Invalid image name {image!r}: use lowercase letters, digits, '.', '_' and '-'.")
@@ -77,6 +79,10 @@ def main():
         workflow = cut(workflow, "\n  tests:\n", "  build:")
     write(".github/workflows/ci.yml", workflow)
 
+    # Trivy scanning.
+    if not trivy:
+        Path(".github/workflows/security.yml").unlink(missing_ok=True)
+
     # Required status checks follow the jobs that remain.
     ruleset = read(".github/rulesets/main.json")
     for job, kept in (("tests", bool(tools)), ("int-tests", pytest)):
@@ -108,6 +114,25 @@ def main():
         else:
             docs = docs.replace(f"hadolint, {both}, and builds", "hadolint and builds")
     write("docs/docker.md", docs)
+
+    if not trivy:
+        docs = read("docs/docker.md")
+        write(
+            "docs/docker.md",
+            "\n".join(
+                ln for ln in docs.splitlines() if not ln.startswith("`.github/workflows/security.yml`")
+            )
+            + "\n",
+        )
+        write(
+            "README.md",
+            "\n".join(
+                ln
+                for ln in read("README.md").splitlines()
+                if not ln.startswith("- Vulnerability scanning with Trivy")
+            )
+            + "\n",
+        )
 
     if not pytest:
         write("README.md", read("README.md").replace("linting, image tests and", "linting and"))

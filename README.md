@@ -1,4 +1,4 @@
-# public-repo-template
+# docker-public-repo-template
 
 A ready-to-use starting point for public GitHub repositories, with community files, issue and pull request templates, automated dependency updates and security checks already in place.
 

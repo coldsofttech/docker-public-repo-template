@@ -1,0 +1,83 @@
+name: Release
+
+# Publishes the image when a GitHub release is published. Each registry is off until you enable it
+# with a repository variable (Settings > Secrets and variables > Actions > Variables):
+#   PUBLISH_GHCR=true         -> ghcr.io/<owner>/<image name>
+#   DOCKERHUB_USERNAME=<name> -> docker.io/<namespace>/<image name> (also needs the
+#   DOCKERHUB_TOKEN secret); the namespace is DOCKERHUB_NAMESPACE below, else the username
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: read
+
+env:
+  # Set by the Init workflow.
+  IMAGE_NAME: docker-public-repo-template
+  DOCKERHUB_NAMESPACE: ""
+
+jobs:
+  publish-ghcr:
+    name: Publish to GitHub Container Registry
+    if: vars.PUBLISH_GHCR == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v7
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Work out image tags and labels
+        id: meta
+        uses: docker/metadata-action@v6
+        with:
+          images: ghcr.io/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+      - name: Build and push the image
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          push: true
+          build-args: VERSION=${{ steps.meta.outputs.version }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+
+  publish-dockerhub:
+    name: Publish to Docker Hub
+    if: vars.DOCKERHUB_USERNAME != ''
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v7
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v4
+        with:
+          username: ${{ vars.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Work out image tags and labels
+        id: meta
+        uses: docker/metadata-action@v6
+        with:
+          images: docker.io/${{ env.DOCKERHUB_NAMESPACE || vars.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+      - name: Build and push the image
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          push: true
+          build-args: VERSION=${{ steps.meta.outputs.version }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}

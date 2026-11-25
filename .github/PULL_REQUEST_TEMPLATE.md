@@ -11,4 +11,5 @@
 - [ ] The change is focused on one thing
 - [ ] `CHANGELOG.md` has a short `[Unreleased]` entry
 - [ ] README or docs are updated if behavior changed
-- [ ] No secrets or personal data are included
+- [ ] The image still builds and runs as a non-root user
+- [ ] No secrets or personal data are in the change or baked into the image

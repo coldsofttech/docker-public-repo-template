@@ -21,8 +21,21 @@ body:
   - type: input
     id: version
     attributes:
-      label: Version
-      description: Release or commit you are using.
+      label: Image tag or version
+      description: The image tag or digest, or the release or commit you built from.
+      placeholder: ghcr.io/owner/image:1.0.0
+  - type: textarea
+    id: command
+    attributes:
+      label: How you run it
+      description: The `docker run` command, or the Compose file section. Remove any secrets first.
+      render: shell
+  - type: input
+    id: environment
+    attributes:
+      label: Docker and platform
+      description: Output of `docker version --format '{{.Server.Version}}'`, plus your operating system and CPU architecture.
+      placeholder: Docker 27.0.3, Ubuntu 24.04, amd64
   - type: textarea
     id: logs
     attributes:

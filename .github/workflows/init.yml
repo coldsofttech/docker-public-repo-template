@@ -1,9 +1,27 @@
 name: Init
 
 # Run once from the Actions tab in a repository created from the template.
-# Replaces the template's owner and repository name, then opens a pull request.
+# Replaces the template's owner and repository name, applies the chosen image name and the
+# pytest/mypy choices, then opens a pull request.
 on:
   workflow_dispatch:
+    inputs:
+      image_name:
+        description: Docker image name (lowercase letters, digits, '.', '_' and '-')
+        required: true
+        type: string
+      dockerhub_namespace:
+        description: Docker Hub user or organisation (optional; defaults to DOCKERHUB_USERNAME)
+        required: false
+        type: string
+      with_pytest:
+        description: Keep the pytest image tests
+        type: boolean
+        default: true
+      with_mypy:
+        description: Keep strict mypy type checking
+        type: boolean
+        default: true
 
 permissions:
   contents: write
@@ -11,13 +29,15 @@ permissions:
 
 jobs:
   init:
-    if: github.repository != 'coldsofttech/public-repo-template'
+    name: Initialize repository
+    if: github.repository != 'coldsofttech/docker-public-repo-template'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v7
+      - name: Check out the repository
+        uses: actions/checkout@v7
 
-      - name: Replace placeholders
+      - name: Replace owner and repository name
         env:
           REPO: ${{ github.repository }}
           OWNER: ${{ github.repository_owner }}
@@ -25,11 +45,20 @@ jobs:
         run: |
           git ls-files -z -- . \
             ':(exclude).github/workflows' ':(exclude)LICENSE' ':(exclude).pre-commit-config.yaml' \
-            | xargs -0 grep -lZ -e coldsofttech -e public-repo-template \
+            | xargs -0 grep -lZ -e coldsofttech -e docker-public-repo-template \
             | xargs -0 -r sed -i \
-                -e "s|coldsofttech/public-repo-template|$REPO|g" \
-                -e "s|public-repo-template|$NAME|g" \
+                -e "s|coldsofttech/docker-public-repo-template|$REPO|g" \
+                -e "s|docker-public-repo-template|$NAME|g" \
                 -e "s|coldsofttech|$OWNER|g"
+
+      - name: Apply image name and tooling choices
+        env:
+          REPO: ${{ github.repository }}
+          IMAGE_NAME: ${{ inputs.image_name }}
+          DOCKERHUB_NAMESPACE: ${{ inputs.dockerhub_namespace }}
+          WITH_PYTEST: ${{ inputs.with_pytest }}
+          WITH_MYPY: ${{ inputs.with_mypy }}
+        run: python3 scripts/init_template.py
 
       - name: Open pull request
         env:
@@ -48,4 +77,4 @@ jobs:
           git push origin chore/init-template
           gh pr create --base "$BASE" --head chore/init-template \
             --title "chore: initialize repository from template" \
-            --body "Replaces the template owner and repository name. Review, merge, then delete \`.github/workflows/init.yml\`."
+            --body "Replaces the template owner and repository name, and applies the image name and the pytest/mypy choices. Review, merge, then delete \`.github/workflows/init.yml\`."

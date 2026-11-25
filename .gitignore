@@ -25,4 +25,23 @@ desktop.ini
 # Claude Code local settings
 .claude/settings.local.json
 
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+build/
+dist/
+*.egg-info/
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+coverage.xml
+
+# Docker
+.buildx-cache/
+.buildx-cache-new/
+
 # Add language- or tool-specific ignores below

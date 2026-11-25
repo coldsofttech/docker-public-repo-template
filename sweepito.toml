@@ -1,0 +1,10 @@
+[defaults]
+profiles = ["docker", "python"]
+risk = "safe"
+
+[clean]
+# Local BuildKit cache exports, which the default risk skips. The next image build is slower.
+enable = ["docker.buildx-cache"]
+
+[hook]
+quiet = true

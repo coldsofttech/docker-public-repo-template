@@ -1,0 +1,7 @@
+# Keep everything except the application out of the build context.
+*
+!app/**
+**/__pycache__
+**/*.pyc
+# Uncomment when the Dockerfile installs a requirements file.
+# !requirements.txt

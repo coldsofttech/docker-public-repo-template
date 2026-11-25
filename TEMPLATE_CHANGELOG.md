@@ -8,7 +8,7 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ### Fixed
 
-- The Init workflow no longer fails when GitHub refuses to push changes to workflow files; it explains how to finish the setup locally.
+- The Init workflow no longer fails when GitHub refuses to push changes to workflow files. It now leaves those changes out, still opens the pull request with everything else, and explains how to apply them locally.
 
 ## [0.1.0] - 2026-11-25
 

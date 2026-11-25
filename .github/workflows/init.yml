@@ -73,20 +73,18 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git switch -c chore/init-template
+          # The workflow token can't push changes to .github/workflows (needs a PAT), so skip them.
+          if ! git diff --quiet -- .github/workflows; then
+            git checkout -- .github/workflows
+            echo "::warning title=Workflow changes skipped::GitHub does not let the workflow token change files in .github/workflows, so those edits were left out of the pull request. Run scripts/init_template.py locally with IMAGE_NAME, REPO and the WITH_* variables set to apply them."
+          fi
           git add -A
           if git diff --cached --quiet; then
             echo "Nothing to change"
             exit 0
           fi
           git commit -m "chore: initialize repository from template"
-          if ! git push origin chore/init-template 2> push.log; then
-            cat push.log
-            if grep -q "without \`workflows\` permission" push.log; then
-              echo "::warning title=Init could not push::GitHub does not let the workflow token change files in .github/workflows, so no pull request was opened. Run scripts/init_template.py locally with IMAGE_NAME, REPO and the WITH_* variables set, then commit the result yourself."
-              exit 0
-            fi
-            exit 1
-          fi
+          git push origin chore/init-template
           gh pr create --base "$BASE" --head chore/init-template \
             --title "chore: initialize repository from template" \
             --body "Replaces the template owner and repository name, and applies the image name and the pytest/mypy choices. Review, merge, then delete \`.github/workflows/init.yml\`."
